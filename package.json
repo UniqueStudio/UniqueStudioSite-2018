@@ -1,14 +1,20 @@
 {
-  "name": "test",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "unqiuestudio-site-2018",
+  "version": "0.0.1",
+  "main": "index.html",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^10.9.4",
-    "@types/three": "^0.92.18"
+    "@types/three": "^0.92.18",
+    "less": "^3.8.1",
+    "typescript": "^3.0.3",
+    "parcel-bundler": "^1.9.7"
   },
   "dependencies": {
-    "three": "^0.96.0",
-    "typescript": "^3.0.3"
+    "three": "^0.96.0"
+  },
+  "scripts": {
+    "start": "parcel ./index.html",
+    "build": "parcel build ./index.html --experimental-scope-hoisting --public-url=./ --out-dir=build"
   }
 }
