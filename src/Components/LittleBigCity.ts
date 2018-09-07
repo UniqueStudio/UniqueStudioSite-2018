@@ -8,8 +8,8 @@ require("three/examples/js/loaders/MTLLoader.js");
 require("three/examples/js/loaders/OBJLoader.js");
 require("three/examples/js/controls/OrbitControls.js");
 
-var mouseX = 0;
-var mouseY = 0;
+// var mouseX = 0;
+// var mouseY = 0;
 // var windowHalfX = window.innerWidth / 2;
 // var windowHalfY = window.innerHeight / 2;
 
