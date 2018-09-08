@@ -201,6 +201,7 @@ const app = application.create("#viewport", {
         }
       }
     );
+
     this._advRenderer.setShadow({
       kernelSize: 10,
       blurSize: 3
@@ -216,18 +217,12 @@ const app = application.create("#viewport", {
     this._elementsNodes = {};
     this._elementsMaterials = {};
 
-    this._diffuseTex = app.loadTextureSync(
-      require("../Assets/paper-detail.png"),
-      {
-        anisotropic: 8
-      }
-    );
+    this._diffuseTex = app.loadTextureSync(require("./paper-detail.png"), {
+      anisotropic: 8
+    });
 
     vectorElements.forEach(el => {
       this._elementsNodes[el.type] = app.createNode();
-      // if (IS_TILE_STYLE) {
-      //   this._elementsNodes[el.type].rotation.rotateX(-Math.PI / 2);
-      // }
       this._elementsMaterials[el.type] = app.createMaterial({
         diffuseMap: this._diffuseTex,
         uvRepeat: [10, 10],
@@ -260,20 +255,15 @@ const app = application.create("#viewport", {
     this._advRenderer.render();
 
     return app
-      .createAmbientCubemapLight(
-        require("../Assets/Grand_Canyon_C.hdr"),
-        0.2,
-        0.8,
-        1
-      )
+      .createAmbientCubemapLight(require("./Grand_Canyon_C.hdr"), 0.2, 0.8, 1)
       .then(result => {
-        // const skybox = new plugin.Skybox({
-        //   environmentMap: result.specular.cubemap,
-        //   scene: app.scene
-        // });
-        // skybox.material.set("lod", 2);
-        // this._skybox = skybox;
-        // this._advRenderer.render();
+        const skybox = new plugin.Skybox({
+          environmentMap: result.specular.cubemap,
+          scene: app.scene
+        });
+        skybox.material.set("lod", 2);
+        this._skybox = skybox;
+        this._advRenderer.render();
       });
   },
 
