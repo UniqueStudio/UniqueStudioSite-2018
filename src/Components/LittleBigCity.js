@@ -1,10 +1,8 @@
-/* global mapboxgl */
 import { extrudeGeoJSON, extrudePolygon } from "geometry-extrude";
 import {
   application,
   plugin,
   geometry as builtinGeometries,
-  // Texture2D,
   Geometry,
   Vector3
 } from "claygl";
@@ -19,10 +17,6 @@ import PolyBool from "polybooljs";
 import distortion from "./distortion";
 
 const mvtCache = LRU(50);
-
-const DEFAULT_LNG = -74.0130345;
-const DEFAULT_LAT = 40.7063516;
-
 const DEFAULT_CONFIG = {
   radius: 60,
   curveness: 1,
@@ -43,47 +37,12 @@ const DEFAULT_CONFIG = {
   showCloud: true,
   cloudColor: "#bdafff",
 
-  rotateSpeed: 0
-  // sky: true
+  rotateSpeed: 0,
+  sky: false
 };
 
-const searchStr = location.search.slice(1);
-const searchItems = searchStr.split("&");
-const urlOpts = {};
-searchItems.forEach(item => {
-  const arr = item.split("=");
-  const key = arr[0];
-  const val = arr[1] || true;
-  urlOpts[key] = val;
-});
-urlOpts.lng = urlOpts.lng || DEFAULT_LNG;
-urlOpts.lat = urlOpts.lat || DEFAULT_LAT;
-
-function makeUrl() {
-  const diffConfig = {};
-  for (let key in config) {
-    if (config[key] !== DEFAULT_CONFIG[key]) {
-      diffConfig[key] = config[key];
-    }
-  }
-  urlOpts.config = encodeURIComponent(JSON.stringify(diffConfig));
-
-  const urlItems = [];
-  for (let key in urlOpts) {
-    urlItems.push(key + "=" + urlOpts[key]);
-  }
-  return "./?" + urlItems.join("&");
-}
-
-const IS_TILE_STYLE = urlOpts.style === "tile";
-
-// const TILE_SIZE = IS_TILE_STYLE ? 512 : 256;
 const TILE_SIZE = 256;
-
-const config = Object.assign({}, DEFAULT_CONFIG);
-try {
-  Object.assign(config, JSON.parse(decodeURIComponent(urlOpts.config || "{}")));
-} catch (e) {}
+const config = DEFAULT_CONFIG;
 
 const mvtUrlTpl = `https://{s}.tile.nextzen.org/tilezen/vector/v1/${TILE_SIZE}/all/{z}/{x}/{y}.mvt?api_key=EWFsMD1DSEysLDWd2hj2cw`;
 const faces = ["pz", "px", "nz", "py", "nx", "ny"];
@@ -183,27 +142,6 @@ function unionComplexPolygons(features) {
   };
 }
 
-function cullBuildingPolygns(features) {
-  const earthCoords = [getRectCoords(earthRect)];
-  features.forEach(feature => {
-    if (
-      feature.geometry &&
-      (feature.geometry.type === "Polygon" ||
-        feature.geometry.type === "MultiPolygon")
-    ) {
-      const poly = PolyBool.polygonFromGeoJSON(feature.geometry);
-      const intersectedPoly = PolyBool.intersect(
-        { regions: earthCoords, inverse: false },
-        poly
-      );
-      feature.geometry = PolyBool.polygonToGeoJSON(intersectedPoly);
-      if (!feature.geometry.coordinates.length) {
-        feature.geometry = null;
-      }
-    }
-  });
-}
-
 function unionRect(out, a, b) {
   const x = Math.min(a.x, b.x);
   const y = Math.min(a.y, b.y);
@@ -234,8 +172,7 @@ function getRectCoords(rect) {
 
 const app = application.create("#viewport", {
   autoRender: false,
-
-  devicePixelRatio: 4,
+  devicePixelRatio: 2,
 
   init(app) {
     this._advRenderer = new ClayAdvancedRenderer(
@@ -269,19 +206,7 @@ const app = application.create("#viewport", {
       blurSize: 3
     });
 
-    const camera = app.createCamera(
-      [0, 0, 170],
-      [0, 0, 0],
-      IS_TILE_STYLE ? "ortho" : "perspective"
-    );
-    if (IS_TILE_STYLE) {
-      camera.top = 50;
-      camera.bottom = -50;
-      camera.left = -50 * app.renderer.getViewportAspect();
-      camera.right = 50 * app.renderer.getViewportAspect();
-      camera.near = 0;
-      camera.far = 1000;
-    }
+    const camera = app.createCamera([0, 0, 170], [0, 0, 0], "perspective");
     camera.update();
     this._camera = camera;
 
@@ -300,9 +225,9 @@ const app = application.create("#viewport", {
 
     vectorElements.forEach(el => {
       this._elementsNodes[el.type] = app.createNode();
-      if (IS_TILE_STYLE) {
-        this._elementsNodes[el.type].rotation.rotateX(-Math.PI / 2);
-      }
+      // if (IS_TILE_STYLE) {
+      //   this._elementsNodes[el.type].rotation.rotateX(-Math.PI / 2);
+      // }
       this._elementsMaterials[el.type] = app.createMaterial({
         diffuseMap: this._diffuseTex,
         uvRepeat: [10, 10],
@@ -314,7 +239,7 @@ const app = application.create("#viewport", {
 
     const light = app.createDirectionalLight([-1, -1, -1], "#fff");
     light.shadowResolution = 2048;
-    light.shadowBias = IS_TILE_STYLE ? 0.01 : 0.0005;
+    light.shadowBias = 0.0005;
 
     this._control = new plugin.OrbitControl({
       target: camera,
@@ -323,21 +248,11 @@ const app = application.create("#viewport", {
       rotateSensitivity: 2,
       orthographicAspect: app.renderer.getViewportAspect()
     });
-    if (IS_TILE_STYLE) {
-      this._control.setOption({
-        beta: 45,
-        alpha: 30,
-        minAlpha: 10,
-        maxAlpha: 80
-      });
-    }
     this._control.on("update", () => {
       this._advRenderer.render();
     });
 
-    if (!IS_TILE_STYLE) {
-      app.methods.updateEarthSphere();
-    }
+    app.methods.updateEarthSphere();
     app.methods.updateElements();
     app.methods.updateVisibility();
     app.methods.generateClouds();
@@ -352,13 +267,13 @@ const app = application.create("#viewport", {
         1
       )
       .then(result => {
-        const skybox = new plugin.Skybox({
-          environmentMap: result.specular.cubemap,
-          scene: app.scene
-        });
-        skybox.material.set("lod", 2);
-        this._skybox = skybox;
-        this._advRenderer.render();
+        // const skybox = new plugin.Skybox({
+        //   environmentMap: result.specular.cubemap,
+        //   scene: app.scene
+        // });
+        // skybox.material.set("lod", 2);
+        // this._skybox = skybox;
+        // this._advRenderer.render();
       });
   },
 
@@ -446,10 +361,7 @@ const app = application.create("#viewport", {
       const buildingAnimators = (this._buildingAnimators = {});
 
       function createElementMesh(elConfig, features, boundingRect, idx) {
-        if (
-          (!IS_TILE_STYLE && elConfig.type === "roads") ||
-          elConfig.type === "water"
-        ) {
+        if (elConfig.type === "roads" || elConfig.type === "water") {
           subdivideLongEdges(features, 4);
         }
         const result = extrudeGeoJSON(
@@ -457,13 +369,13 @@ const app = application.create("#viewport", {
           {
             lineWidth: 0.5,
             excludeBottom: true,
-            simplify: IS_TILE_STYLE || elConfig.type === "buildings" ? 0.01 : 0,
+            simplify: elConfig.type === "buildings" ? 0.01 : 0,
             depth: elConfig.depth
           }
         );
         const poly = result[elConfig.geometryType];
         const geo = new Geometry();
-        if (!IS_TILE_STYLE && elConfig.type === "water") {
+        if (elConfig.type === "water") {
           const { indices, position } = tessellate(
             poly.position,
             poly.indices,
@@ -489,22 +401,20 @@ const app = application.create("#viewport", {
             }
           }
 
-          if (!IS_TILE_STYLE) {
-            positionAnimateTo = distortion(
-              poly.position,
-              boundingRect,
-              config.radius,
-              config.curveness,
-              faces[idx]
-            );
-            positionAnimateFrom = distortion(
-              positionAnimateFrom,
-              boundingRect,
-              config.radius,
-              config.curveness,
-              faces[idx]
-            );
-          }
+          positionAnimateTo = distortion(
+            poly.position,
+            boundingRect,
+            config.radius,
+            config.curveness,
+            faces[idx]
+          );
+          positionAnimateFrom = distortion(
+            positionAnimateFrom,
+            boundingRect,
+            config.radius,
+            config.curveness,
+            faces[idx]
+          );
           geo.attributes.position.value = positionAnimateTo;
           geo.generateVertexNormals();
           geo.updateBoundingBox();
@@ -534,17 +444,14 @@ const app = application.create("#viewport", {
             })
             .start("elasticOut");
         } else {
-          if (IS_TILE_STYLE) {
-            geo.attributes.position.value = poly.position;
-          } else {
-            geo.attributes.position.value = distortion(
-              poly.position,
-              boundingRect,
-              config.radius,
-              config.curveness,
-              faces[idx]
-            );
-          }
+          geo.attributes.position.value = distortion(
+            poly.position,
+            boundingRect,
+            config.radius,
+            config.curveness,
+            faces[idx]
+          );
+
           geo.generateVertexNormals();
           geo.updateBoundingBox();
         }
@@ -552,160 +459,10 @@ const app = application.create("#viewport", {
         return { boundingRect: poly.boundingRect };
       }
 
-      // let tiles = mainLayer.getTiles().tileGrids[0].tiles;
-      let tiles = [
-        {
-          point: { x: -3449343.9999999995, y: -2080255.9999999998 },
-          z: 16,
-          x: 19294,
-          y: 24642,
-          extent2d: {
-            xmin: -3449343.9999999995,
-            ymin: -2080255.9999999998,
-            xmax: -3449087.9999999995,
-            ymax: -2079999.9999999998
-          },
-          size: [256, 256],
-          dupKey: "-3449344,-2080256,256,256,base",
-          id: "base__24642__19294__16",
-          layer: "base"
-        },
-        {
-          point: { x: -3449088, y: -2080255.9999999998 },
-          z: 16,
-          x: 19295,
-          y: 24642,
-          extent2d: {
-            xmin: -3449088,
-            ymin: -2080255.9999999998,
-            xmax: -3448832,
-            ymax: -2079999.9999999998
-          },
-          size: [256, 256],
-          dupKey: "-3449088,-2080256,256,256,base",
-          id: "base__24642__19295__16",
-          layer: "base"
-        },
-        {
-          point: { x: -3449343.9999999995, y: -2080512.0000000002 },
-          z: 16,
-          x: 19294,
-          y: 24641,
-          extent2d: {
-            xmin: -3449343.9999999995,
-            ymin: -2080512.0000000002,
-            xmax: -3449087.9999999995,
-            ymax: -2080256.0000000002
-          },
-          size: [256, 256],
-          dupKey: "-3449344,-2080512,256,256,base",
-          id: "base__24641__19294__16",
-          layer: "base"
-        },
-        {
-          point: { x: -3449088, y: -2080512.0000000002 },
-          z: 16,
-          x: 19295,
-          y: 24641,
-          extent2d: {
-            xmin: -3449088,
-            ymin: -2080512.0000000002,
-            xmax: -3448832,
-            ymax: -2080256.0000000002
-          },
-          size: [256, 256],
-          dupKey: "-3449088,-2080512,256,256,base",
-          id: "base__24641__19295__16",
-          layer: "base"
-        },
-        {
-          point: { x: -3449600.0000000005, y: -2080255.9999999998 },
-          z: 16,
-          x: 19293,
-          y: 24642,
-          extent2d: {
-            xmin: -3449600.0000000005,
-            ymin: -2080255.9999999998,
-            xmax: -3449344.0000000005,
-            ymax: -2079999.9999999998
-          },
-          size: [256, 256],
-          dupKey: "-3449600,-2080256,256,256,base",
-          id: "base__24642__19293__16",
-          layer: "base"
-        },
-        {
-          point: { x: -3449600.0000000005, y: -2080512.0000000002 },
-          z: 16,
-          x: 19293,
-          y: 24641,
-          extent2d: {
-            xmin: -3449600.0000000005,
-            ymin: -2080512.0000000002,
-            xmax: -3449344.0000000005,
-            ymax: -2080256.0000000002
-          },
-          size: [256, 256],
-          dupKey: "-3449600,-2080512,256,256,base",
-          id: "base__24641__19293__16",
-          layer: "base"
-        }
-      ];
-
-      let extents = [
-        {
-          xmin: -74.014892578125,
-          ymin: 40.701463603604594,
-          xmax: -74.0093994140625,
-          ymax: 40.70562793820588
-        },
-        {
-          xmin: -74.0093994140625,
-          ymin: 40.701463603604594,
-          xmax: -74.00390625,
-          ymax: 40.70562793820588
-        },
-        {
-          xmin: -74.014892578125,
-          ymin: 40.70562793820588,
-          xmax: -74.0093994140625,
-          ymax: 40.709792012434974
-        },
-        {
-          xmin: -74.0093994140625,
-          ymin: 40.70562793820588,
-          xmax: -74.00390625,
-          ymax: 40.709792012434974
-        },
-        {
-          xmin: -74.0203857421875,
-          ymin: 40.701463603604594,
-          xmax: -74.014892578125,
-          ymax: 40.70562793820588
-        },
-        {
-          xmin: -74.0203857421875,
-          ymin: 40.70562793820588,
-          xmax: -74.014892578125,
-          ymax: 40.709792012434974
-        }
-      ];
-
+      const { tiles, extents } = require("./tiles.json");
       let zipped = tiles.map((tile, i) => [tile, extents[i]]);
 
       const subdomains = ["a", "b", "c"];
-      if (IS_TILE_STYLE) {
-        const center = { x: -74.0130345, y: 40.70635160000003 };
-        zipped = zipped.filter(([_, extent]) => {
-          return (
-            extent.xmax > center.x &&
-            extent.xmin < center.x &&
-            extent.ymax > center.y &&
-            extent.ymin < center.y
-          );
-        });
-      }
-      let loading = Math.min(zipped.length, 6);
       zipped.forEach(([tile, extent], idx) => {
         const fetchId = this._id;
         if (idx >= 6) {
@@ -717,8 +474,8 @@ const app = application.create("#viewport", {
         const width = (extent.xmax - extent.xmin) * scaleX;
         const height = (extent.ymax - extent.ymin) * scaleY;
         const tileRect = {
-          x: IS_TILE_STYLE ? -width / 2 : 0,
-          y: IS_TILE_STYLE ? -height / 2 : 0,
+          x: 0,
+          y: 0,
           width: width,
           height: height
         };
@@ -777,19 +534,10 @@ const app = application.create("#viewport", {
                   .toGeoJSON(tile.x, tile.y, tile.z);
                 scaleFeature(
                   feature,
-                  IS_TILE_STYLE
-                    ? [
-                        -(extent.xmax + extent.xmin) / 2,
-                        -(extent.ymax + extent.ymin) / 2
-                      ]
-                    : [-extent.xmin, -extent.ymin],
+                  [-extent.xmin, -extent.ymin],
                   [scaleX, scaleY]
                 );
                 features[type].push(feature);
-              }
-
-              if (IS_TILE_STYLE) {
-                cullBuildingPolygns(features[type]);
               }
             });
 
@@ -819,20 +567,13 @@ const app = application.create("#viewport", {
               unionRect(allBoundingRect, boundingRect, allBoundingRect);
             }
 
-            loading--;
-            if (IS_TILE_STYLE) {
-              if (loading === 0) {
-                app.methods.updateEarthGround(allBoundingRect);
-              }
-            }
-
             app.methods.render();
           });
       });
     },
 
     generateClouds(app) {
-      const cloudNumber = IS_TILE_STYLE ? 10 : 15;
+      const cloudNumber = 15;
       const pointCount = 100;
       this._cloudsNode.removeAll();
 
@@ -875,13 +616,9 @@ const app = application.create("#viewport", {
             const pt = randomInSphere(r);
             points.push(pt);
             positionArr[off++] = pt[0] + posOff * dist * dx;
-            if (IS_TILE_STYLE) {
-              positionArr[off++] = pt[1];
-              positionArr[off++] = pt[2] + posOff * dist * dy;
-            } else {
-              positionArr[off++] = pt[1] + posOff * dist * dy;
-              positionArr[off++] = pt[2];
-            }
+
+            positionArr[off++] = pt[1] + posOff * dist * dy;
+            positionArr[off++] = pt[2];
           }
           const tmp = quickhull(points);
           for (let m = 0; m < tmp.length; m++) {
@@ -898,21 +635,10 @@ const app = application.create("#viewport", {
 
         const cloudMesh = app.createMesh(geo, cloudMaterial, this._cloudsNode);
         cloudMesh.height = Math.random() * 10 + 20;
-        if (IS_TILE_STYLE) {
-          cloudMesh.position.setArray([
-            (Math.random() - 0.5) * 60,
-            Math.random() * 10 + 25,
-            (Math.random() - 0.5) * 60
-          ]);
-          if (IS_TILE_STYLE) {
-            cloudMesh.scale.set(0.6, 0.6, 0.6);
-          }
-        } else {
-          cloudMesh.position.setArray(
-            randomInSphere(config.radius / Math.sqrt(2) + cloudMesh.height)
-          );
-          cloudMesh.lookAt(Vector3.ZERO);
-        }
+        cloudMesh.position.setArray(
+          randomInSphere(config.radius / Math.sqrt(2) + cloudMesh.height)
+        );
+        cloudMesh.lookAt(Vector3.ZERO);
       }
       app.methods.render();
     },
@@ -933,10 +659,6 @@ const app = application.create("#viewport", {
     render(app) {
       this._control.orthographicAspect = app.renderer.getViewportAspect();
       this._advRenderer.render();
-      // TODO
-      // setTimeout(() => {
-      //   this._advRenderer.render();
-      // }, 20);
     },
 
     updateAutoRotate() {
@@ -968,3 +690,10 @@ window.addEventListener("resize", () => {
   app.resize();
   app.methods.render();
 });
+
+if (module.hot) {
+  module.hot.dispose(function() {
+    console.log(app);
+    app.dispose();
+  });
+}
