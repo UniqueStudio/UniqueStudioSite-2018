@@ -21,6 +21,6 @@
   },
   "scripts": {
     "start": "parcel ./index.html",
-    "build": "parcel build ./index.html --public-url=./ --out-dir=build"
+    "build": "parcel build ./index.html --public-url=./ --out-dir=build --experimental-scope-hoisting"
   }
 }
