@@ -37,7 +37,7 @@ const DEFAULT_CONFIG = {
   showCloud: true,
   cloudColor: "#bdafff",
 
-  rotateSpeed: 0,
+  rotateSpeed: 1,
   sky: false
 };
 

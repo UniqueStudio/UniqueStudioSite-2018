@@ -37,16 +37,6 @@
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/@types/semver/-/semver-5.5.0.tgz#146c2a29ee7d3bae4bf2fcb274636e264c813c45"
 
-"@types/three@^0.92.18":
-  version "0.92.18"
-  resolved "https://registry.yarnpkg.com/@types/three/-/three-0.92.18.tgz#49db164e47b00894bdf735f507af8993e5f777a9"
-  dependencies:
-    "@types/webvr-api" "*"
-
-"@types/webvr-api@*":
-  version "0.0.34"
-  resolved "https://registry.yarnpkg.com/@types/webvr-api/-/webvr-api-0.0.34.tgz#8fa49028de925c7b8bce3d559d3374ce2c89ee28"
-
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
@@ -976,9 +966,9 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-claygl-advanced-renderer@^0.1.0:
+"claygl-advanced-renderer@git+https://github.com/pissang/claygl-advanced-renderer.git":
   version "0.1.0"
-  resolved "https://registry.yarnpkg.com/claygl-advanced-renderer/-/claygl-advanced-renderer-0.1.0.tgz#81a4ce0a2ca98e9a1e41fa46479b46223b95aaff"
+  resolved "git+https://github.com/pissang/claygl-advanced-renderer.git#85e3152ba657ef6fe60a76c602319de183cf32e4"
   dependencies:
     zrender "^4.0.3"
 
@@ -1095,7 +1085,11 @@ command-exists@^1.2.6:
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/command-exists/-/command-exists-1.2.7.tgz#16828f0c3ff2b0c58805861ef211b64fc15692a8"
 
-commander@*, commander@^2.11.0, commander@~2.17.1:
+commander@*, commander@^2.11.0:
+  version "2.18.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-2.18.0.tgz#2bf063ddee7c7891176981a2cc798e5754bc6970"
+
+commander@~2.17.1:
   version "2.17.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.17.1.tgz#bd77ab7de6de94205ceacc72f1716d29f20a77bf"
 
@@ -1384,10 +1378,6 @@ dashdash@^1.12.0:
   resolved "https://registry.yarnpkg.com/dashdash/-/dashdash-1.14.1.tgz#853cfa0f7cbe2fed5de20326b8dd581035f6e2f0"
   dependencies:
     assert-plus "^1.0.0"
-
-dat.gui@^0.7.2:
-  version "0.7.2"
-  resolved "https://registry.yarnpkg.com/dat.gui/-/dat.gui-0.7.2.tgz#57056f286d0f989e83f5adec196f24fd69c01ae3"
 
 date-now@^0.1.4:
   version "0.1.4"
@@ -1873,7 +1863,7 @@ gauge@~2.7.3:
     strip-ansi "^3.0.1"
     wide-align "^1.1.0"
 
-geometry-extrude@^0.1.2:
+geometry-extrude@^0.1.1:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/geometry-extrude/-/geometry-extrude-0.1.2.tgz#7e4d8166a11266741ffb8d1770b3a954d99daf93"
   dependencies:
@@ -3648,7 +3638,7 @@ querystring@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz#b209849203bb25df820da756e747005878521620"
 
-quickhull3d@^2.0.4:
+quickhull3d@^2.0.3:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/quickhull3d/-/quickhull3d-2.0.4.tgz#beb4d988398c842486b4fbf13b21119cc2a5df0b"
   dependencies:
@@ -4269,10 +4259,6 @@ terser@^3.7.3, terser@^3.8.1:
     commander "~2.17.1"
     source-map "~0.6.1"
     source-map-support "~0.5.6"
-
-three@^0.96.0:
-  version "0.96.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.96.0.tgz#6f48bb9e321506906ae4708bda69b0ffa808ee7f"
 
 through2@^2.0.0, through2@~2.0.3:
   version "2.0.3"
