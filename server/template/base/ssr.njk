@@ -1,0 +1,18 @@
+<html>
+  <head>
+    {% include './header.njk' %}
+    {% block custom_header %}
+    {% endblock %}
+    {{ addCSS() }}
+    {% block prescripts %}
+    {% endblock %}
+  </head>
+  <body>
+    <div id="root">{{ html | safe }}</div>
+    {% block custom_html %}
+    {% endblock %}
+  </body>
+  {{ addScripts() }}
+  {% block scripts %}
+  {% endblock %}
+</html>
