@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 import getAsset from '../lib/getAsset';
 import { isRedirect } from '@reach/router';
-import App from '../public/buildServer/index';
+import App from '../public/buildServer/home';
 
 export default async (ctx: Context) => {
   try {

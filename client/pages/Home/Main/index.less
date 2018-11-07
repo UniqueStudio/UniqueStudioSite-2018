@@ -1,0 +1,33 @@
+@height: 100vh;
+
+.main {
+  &-container {
+    height: @height;
+  }
+
+  &-bg {
+    position: absolute;
+    z-index: -999;
+    width: 200%;
+    height: @height;
+    background-color: #7410ee;
+    transform: rotate(-20deg);
+    transform-origin: 0 @height;
+  }
+
+  &-rects {
+    position: absolute;
+    width: 100%;
+    height: @height;
+    background: no-repeat center url('~img/rects.png');
+    z-index: -20;
+  }
+
+  &-unique-studio {
+    position: absolute;
+    width: 100%;
+    height: @height;
+    background: no-repeat center url('~img/uniquestudio.png');
+    z-index: 20;
+  }
+}

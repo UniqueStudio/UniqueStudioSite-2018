@@ -1,20 +1,20 @@
-import { extrudeGeoJSON, extrudePolygon } from "geometry-extrude";
+import { extrudeGeoJSON, extrudePolygon } from 'geometry-extrude';
 import {
   application,
   plugin,
   geometry as builtinGeometries,
   Geometry,
   Vector3
-} from "claygl";
-import { VectorTile } from "@mapbox/vector-tile";
-import Protobuf from "pbf";
-import ClayAdvancedRenderer from "claygl-advanced-renderer";
-import LRU from "lru-cache";
-import quickhull from "quickhull3d";
-import tessellate from "./tessellate";
-import vec2 from "claygl/src/glmatrix/vec2";
-import PolyBool from "polybooljs";
-import distortion from "./distortion";
+} from 'claygl';
+import { VectorTile } from '@mapbox/vector-tile';
+import Protobuf from 'pbf';
+import ClayAdvancedRenderer from 'claygl-advanced-renderer';
+import LRU from 'lru-cache';
+import quickhull from 'quickhull3d';
+import tessellate from './tessellate';
+import vec2 from 'claygl/src/glmatrix/vec2';
+import PolyBool from 'polybooljs';
+import distortion from './distortion';
 
 const mvtCache = LRU(50);
 const DEFAULT_CONFIG = {
@@ -23,19 +23,19 @@ const DEFAULT_CONFIG = {
 
   showEarth: true,
   earthDepth: 4,
-  earthColor: "#57e3d3",
+  earthColor: '#57e3d3',
 
   showBuildings: true,
-  buildingsColor: "#9e62df",
+  buildingsColor: '#9e62df',
 
   showRoads: true,
-  roadsColor: "#dedede",
+  roadsColor: '#dedede',
 
   showWater: true,
-  waterColor: "#59dffc",
+  waterColor: '#59dffc',
 
   showCloud: true,
-  cloudColor: "#bdafff",
+  cloudColor: '#bdafff',
 
   rotateSpeed: 1,
   sky: false
@@ -45,43 +45,43 @@ const TILE_SIZE = 256;
 const config = DEFAULT_CONFIG;
 
 const mvtUrlTpl = `https://{s}.tile.nextzen.org/tilezen/vector/v1/${TILE_SIZE}/all/{z}/{x}/{y}.mvt?api_key=EWFsMD1DSEysLDWd2hj2cw`;
-const faces = ["pz", "px", "nz", "py", "nx", "ny"];
+const faces = ['pz', 'px', 'nz', 'py', 'nx', 'ny'];
 const vectorElements = [
   {
-    type: "buildings",
-    geometryType: "polygon",
+    type: 'buildings',
+    geometryType: 'polygon',
     depth: feature => {
       return (feature.properties.height || 30) / 10 + 1;
     }
   },
   {
-    type: "roads",
-    geometryType: "polyline",
+    type: 'roads',
+    geometryType: 'polyline',
     depth: 1.2
   },
   {
-    type: "water",
-    geometryType: "polygon",
+    type: 'water',
+    geometryType: 'polygon',
     depth: 1
   }
 ];
 
 function iterateFeatureCoordinates(feature, cb) {
   const geometry = feature.geometry;
-  if (geometry.type === "MultiPolygon") {
+  if (geometry.type === 'MultiPolygon') {
     for (let i = 0; i < geometry.coordinates.length; i++) {
       for (let k = 0; k < geometry.coordinates[i].length; k++) {
         geometry.coordinates[i][k] = cb(geometry.coordinates[i][k]);
       }
     }
   } else if (
-    geometry.type === "MultiLineString" ||
-    geometry.type === "Polygon"
+    geometry.type === 'MultiLineString' ||
+    geometry.type === 'Polygon'
   ) {
     for (let i = 0; i < geometry.coordinates.length; i++) {
       geometry.coordinates[i] = cb(geometry.coordinates[i]);
     }
-  } else if (geometry.type === "LineString") {
+  } else if (geometry.type === 'LineString') {
     geometry.coordinates = cb(geometry.coordinates);
   }
 }
@@ -123,20 +123,20 @@ function unionComplexPolygons(features) {
   const mergedCoordinates = [];
   features.forEach(feature => {
     const geometry = feature.geometry;
-    if (geometry.type === "Polygon") {
+    if (geometry.type === 'Polygon') {
       mergedCoordinates.push(feature.geometry.coordinates);
-    } else if (geometry.type === "MultiPolygon") {
+    } else if (geometry.type === 'MultiPolygon') {
       for (let i = 0; i < feature.geometry.coordinates.length; i++) {
         mergedCoordinates.push(feature.geometry.coordinates[i]);
       }
     }
   });
   const poly = PolyBool.polygonFromGeoJSON({
-    type: "MultiPolygon",
+    type: 'MultiPolygon',
     coordinates: mergedCoordinates
   });
   return {
-    type: "Feature",
+    type: 'Feature',
     properties: {},
     geometry: PolyBool.polygonToGeoJSON(poly)
   };
@@ -170,7 +170,7 @@ function getRectCoords(rect) {
   ];
 }
 
-const app = application.create("#viewport", {
+const app = application.create('#viewport', {
   autoRender: false,
   devicePixelRatio: 2,
 
@@ -207,7 +207,7 @@ const app = application.create("#viewport", {
       blurSize: 3
     });
 
-    const camera = app.createCamera([0, 0, 170], [0, 0, 0], "perspective");
+    const camera = app.createCamera([0, 0, 170], [0, 0, 0], 'perspective');
     camera.update();
     this._camera = camera;
 
@@ -217,7 +217,7 @@ const app = application.create("#viewport", {
     this._elementsNodes = {};
     this._elementsMaterials = {};
 
-    this._diffuseTex = app.loadTextureSync(require("./paper-detail.png"), {
+    this._diffuseTex = app.loadTextureSync(require('./paper-detail.png'), {
       anisotropic: 8
     });
 
@@ -226,13 +226,13 @@ const app = application.create("#viewport", {
       this._elementsMaterials[el.type] = app.createMaterial({
         diffuseMap: this._diffuseTex,
         uvRepeat: [10, 10],
-        color: config[el.type + "Color"],
+        color: config[el.type + 'Color'],
         roughness: 1
       });
-      this._elementsMaterials[el.type].name = "mat_" + el.type;
+      this._elementsMaterials[el.type].name = 'mat_' + el.type;
     });
 
-    const light = app.createDirectionalLight([-1, -1, -1], "#fff");
+    const light = app.createDirectionalLight([-1, -1, -1], '#fff');
     light.shadowResolution = 2048;
     light.shadowBias = 0.0005;
 
@@ -243,7 +243,7 @@ const app = application.create("#viewport", {
       rotateSensitivity: 2,
       orthographicAspect: app.renderer.getViewportAspect()
     });
-    this._control.on("update", () => {
+    this._control.on('update', () => {
       this._advRenderer.render();
     });
 
@@ -255,13 +255,13 @@ const app = application.create("#viewport", {
     this._advRenderer.render();
 
     return app
-      .createAmbientCubemapLight(require("./Grand_Canyon_C.hdr"), 0.2, 0.8, 1)
+      .createAmbientCubemapLight(require('./Grand_Canyon_C.hdr'), 0.2, 0.8, 1)
       .then(result => {
         const skybox = new plugin.Skybox({
           environmentMap: result.specular.cubemap,
           scene: app.scene
         });
-        skybox.material.set("lod", 2);
+        skybox.material.set('lod', 2);
         this._skybox = skybox;
         this._advRenderer.render();
       });
@@ -277,7 +277,7 @@ const app = application.create("#viewport", {
         diffuseMap: this._diffuseTex,
         uvRepeat: [2, 2]
       });
-      earthMat.name = "mat_earth";
+      earthMat.name = 'mat_earth';
 
       faces.forEach(face => {
         const planeGeo = new builtinGeometries.Plane({
@@ -322,7 +322,7 @@ const app = application.create("#viewport", {
       const mesh = app.createMesh(
         geo,
         {
-          nmae: "mat_earth",
+          nmae: 'mat_earth',
           roughness: 1,
           color: config.earthColor,
           diffuseMap: this._diffuseTex,
@@ -351,7 +351,7 @@ const app = application.create("#viewport", {
       const buildingAnimators = (this._buildingAnimators = {});
 
       function createElementMesh(elConfig, features, boundingRect, idx) {
-        if (elConfig.type === "roads" || elConfig.type === "water") {
+        if (elConfig.type === 'roads' || elConfig.type === 'water') {
           subdivideLongEdges(features, 4);
         }
         const result = extrudeGeoJSON(
@@ -359,13 +359,13 @@ const app = application.create("#viewport", {
           {
             lineWidth: 0.5,
             excludeBottom: true,
-            simplify: elConfig.type === "buildings" ? 0.01 : 0,
+            simplify: elConfig.type === 'buildings' ? 0.01 : 0,
             depth: elConfig.depth
           }
         );
         const poly = result[elConfig.geometryType];
         const geo = new Geometry();
-        if (elConfig.type === "water") {
+        if (elConfig.type === 'water') {
           const { indices, position } = tessellate(
             poly.position,
             poly.indices,
@@ -381,7 +381,7 @@ const app = application.create("#viewport", {
           elementsMaterials[elConfig.type],
           elementsNodes[elConfig.type]
         );
-        if (elConfig.type === "buildings") {
+        if (elConfig.type === 'buildings') {
           let positionAnimateFrom = new Float32Array(poly.position);
           let positionAnimateTo = poly.position;
           for (let i = 0; i < positionAnimateFrom.length; i += 3) {
@@ -432,7 +432,7 @@ const app = application.create("#viewport", {
               geo.dirty();
               advRenderer.render();
             })
-            .start("elasticOut");
+            .start('elasticOut');
         } else {
           geo.attributes.position.value = distortion(
             poly.position,
@@ -449,10 +449,10 @@ const app = application.create("#viewport", {
         return { boundingRect: poly.boundingRect };
       }
 
-      const { tiles, extents } = require("./tiles.json");
+      const { tiles, extents } = require('./tiles.json');
       let zipped = tiles.map((tile, i) => [tile, extents[i]]);
 
-      const subdomains = ["a", "b", "c"];
+      const subdomains = ['a', 'b', 'c'];
       zipped.forEach(([tile, extent], idx) => {
         const fetchId = this._id;
         if (idx >= 6) {
@@ -478,10 +478,10 @@ const app = application.create("#viewport", {
 
         // const tile = tiles[idx];
         const url = mvtUrlTpl
-          .replace("{z}", tile.z)
-          .replace("{x}", tile.x)
-          .replace("{y}", tile.y)
-          .replace("{s}", subdomains[idx % 3]);
+          .replace('{z}', tile.z)
+          .replace('{x}', tile.x)
+          .replace('{y}', tile.y)
+          .replace('{s}', subdomains[idx % 3]);
 
         if (mvtCache.get(url)) {
           const features = mvtCache.get(url);
@@ -498,7 +498,7 @@ const app = application.create("#viewport", {
         }
 
         return fetch(url, {
-          mode: "cors"
+          mode: 'cors'
         })
           .then(response => response.arrayBuffer())
           .then(buffer => {
@@ -513,7 +513,7 @@ const app = application.create("#viewport", {
             }
 
             const features = {};
-            ["buildings", "roads", "water"].forEach(type => {
+            ['buildings', 'roads', 'water'].forEach(type => {
               if (!vTile.layers[type]) {
                 return;
               }
@@ -536,14 +536,14 @@ const app = application.create("#viewport", {
                 unionComplexPolygons(
                   features.water.filter(feature => {
                     const geoType = feature.geometry && feature.geometry.type;
-                    return geoType === "Polygon" || geoType === "MultiPolygon";
+                    return geoType === 'Polygon' || geoType === 'MultiPolygon';
                   })
                 )
               ];
             }
             features.roads = features.roads.filter(feature => {
               const geoType = feature.geometry && feature.geometry.type;
-              return geoType === "LineString" || geoType === "MultiLineString";
+              return geoType === 'LineString' || geoType === 'MultiLineString';
             });
 
             mvtCache.set(url, features);
@@ -571,7 +571,7 @@ const app = application.create("#viewport", {
         roughness: 1,
         color: config.cloudColor
       });
-      cloudMaterial.name = "mat_cloud";
+      cloudMaterial.name = 'mat_cloud';
 
       function randomInSphere(r) {
         const alpha = Math.random() * Math.PI * 2;
@@ -635,13 +635,13 @@ const app = application.create("#viewport", {
 
     updateColor() {
       this._earthNode.eachChild(mesh => {
-        mesh.material.set("color", config.earthColor);
+        mesh.material.set('color', config.earthColor);
       });
       this._cloudsNode.eachChild(mesh => {
-        mesh.material.set("color", config.cloudColor);
+        mesh.material.set('color', config.cloudColor);
       });
       for (let key in this._elementsMaterials) {
-        this._elementsMaterials[key].set("color", config[key + "Color"]);
+        this._elementsMaterials[key].set('color', config[key + 'Color']);
       }
       this._advRenderer.render();
     },
@@ -676,7 +676,7 @@ const app = application.create("#viewport", {
   }
 });
 
-window.addEventListener("resize", () => {
+window.addEventListener('resize', () => {
   app.resize();
   app.methods.render();
 });

@@ -1,0 +1,79 @@
+.date-book {
+  &-container {
+    width: 100%;
+    color: #ffffff;
+    text-align: center;
+
+    .slick-slider {
+      width: 80%;
+      height: 400px;
+      margin: 0 auto;
+      margin-top: 40px;
+
+      .slick-dots {
+        bottom: -50px;
+
+        li {
+          width: unset;
+          height: unset;
+        }
+      }
+
+      .slick-active {
+        .paging-circle {
+          background-color: #572dad;
+        }
+      }
+    }
+  }
+
+  &-title {
+    text-align: center;
+    font-size: 3.8rem;
+    line-height: 5rem;
+    color: #ffffff;
+    padding: 45px 0 25px;
+    background-color: #7410ee;
+  }
+
+  &-event {
+    position: relative;
+    height: 100%;
+    outline: none;
+    text-align: center;
+
+    img {
+      position: absolute;
+      height: 100%;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      z-index: -1;
+    }
+
+    .date-book-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  &-paging {
+    font-size: 1rem;
+    color: #7410ee;
+    transition: transform 0.2s linear;
+
+    &:hover {
+      transform: scale(1.2);
+    }
+
+    .paging-circle {
+      width: 12px;
+      height: 12px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background-color: #9677d6;
+    }
+  }
+}

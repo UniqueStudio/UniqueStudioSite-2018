@@ -7,8 +7,7 @@ const outputDir = path.resolve(__dirname, '../server/public/buildClient');
 const ManifestPlugin = require('webpack-manifest-plugin');
 module.exports = merge(baseConfig, {
   output: {
-    path: outputDir,
-    crossOriginLoading: 'anonymous'
+    path: outputDir
   },
   plugins: [
     new ManifestPlugin(),

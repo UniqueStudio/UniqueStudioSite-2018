@@ -6,10 +6,15 @@ const WriteFilePlugin = require('write-file-webpack-plugin');
 module.exports = merge(baseConfig, {
   mode: 'development',
   devtool: 'source-map',
+  watch: true,
+  watchOptions: {
+    aggregateTimeout: 1000,
+    poll: 3000
+  },
   devServer: {
     host: '0.0.0.0',
     hot: false,
-    inline: false,
+    inline: true,
     port: 3330,
     disableHostCheck: true,
     historyApiFallback: true,
@@ -17,7 +22,7 @@ module.exports = merge(baseConfig, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       'Access-Control-Allow-Headers':
-        'X-Requested-With, content-type, Authorization'
+        'Origin, X-Requested-With, Content-Type, Accept, Content-Type'
     }
   },
   plugins: [

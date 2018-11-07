@@ -21,7 +21,10 @@ export default function getAsset({ App, url }: { App?: any; url: string }) {
     .map(bundle => bundle.file);
   const scripts = bundles
     .filter(bundle => bundle && bundle.file.endsWith('.js'))
-    .map(bundle => bundle.file);
+    .map(bundle => {
+      const match = `${bundle.file}`.match(/[a-zA-Z_\-]*\.js/g) as string[];
+      return match[0];
+    });
   return {
     html,
     scripts,

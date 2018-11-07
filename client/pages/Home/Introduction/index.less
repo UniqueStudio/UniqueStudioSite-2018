@@ -1,0 +1,64 @@
+.intro {
+  &-title {
+    &-container {
+      width: 341px;
+      height: 48px;
+      box-sizing: border-box;
+      margin: 0 auto;
+      text-align: center;
+      box-shadow: 0px 3px 30px 0px #5129c5, inset 0px 3px 30px 0px #5129c5;
+      border: solid 6px #5129c5;
+    }
+
+    margin: 0;
+    font-size: 72px;
+    line-height: 72px;
+    margin-top: -40px;
+    color: #030032;
+  }
+
+  &-container {
+    position: relative;
+    padding-top: 72px;
+    margin: 30px auto;
+
+    .slick-slider {
+      width: 80%;
+      margin: 20px auto 0;
+      height: 350px;
+      outline: none;
+    }
+
+    .slick-dots {
+      bottom: 0;
+
+      li {
+        position: relative;
+        width: auto;
+        height: auto;
+        bottom: 2px;
+      }
+
+      li.slick-active {
+        bottom: 0;
+      }
+
+      li .dot-item {
+        border: 6px solid #9677d6;
+        border-radius: 50%;
+      }
+
+      li.slick-active .dot-item {
+        border: 8px solid #572dad;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  &-content {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    letter-spacing: 0px;
+    color: #28213b;
+  }
+}

@@ -39,6 +39,10 @@ module.exports = {
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/,
         use: ['file-loader']
+      },
+      {
+        test: /\.(hdr)$/,
+        use: ['file-loader']
       }
     ]
   },
@@ -49,6 +53,9 @@ module.exports = {
     })
   ],
   resolve: {
-    extensions: ['.tsx', '.ts', '.js', '.jsx', '.json']
+    extensions: ['.tsx', '.ts', '.js', '.jsx', '.json'],
+    alias: {
+      img: path.resolve(__dirname, './assets/img')
+    }
   }
 };
