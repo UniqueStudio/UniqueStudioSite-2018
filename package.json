@@ -28,6 +28,7 @@
     "babel-plugin-dynamic-import-node": "^2.1.0",
     "babel-plugin-module-resolver": "^3.1.1",
     "clean-webpack-plugin": "^0.1.19",
+    "cross-env": "^5.2.0",
     "css-loader": "^1.0.0",
     "eslint": "^5.5.0",
     "eslint-plugin-import": "^2.14.0",
@@ -78,9 +79,9 @@
     "start": "parcel ./index.html",
     "build": "parcel build ./index.html --public-url=./ --out-dir=build",
     "client:dev": "run-p client:bundle-dev client:ssr-dev",
-    "client:ssr-dev": "BABEL_ENV=ssr NODE_ENV=development webpack --watch --config client/webpack.config.ssr.js",
-    "client:bundle-dev": "BABEL_ENV=client NODE_ENV=development webpack-dev-server --config client/webpack.config.dev.js",
-    "server:dev": "BABEL_ENV=server NODE_ENV=development nodemon --exec babel-node server/app.ts  --extensions '.js,.ts,.tsx'",
-    "server:build": "BABEL_ENV=server NODE_ENV=production babel server --ignore server/public/ -D -d output/server --extensions '.ts,.tsx'"
+    "client:ssr-dev": "cross-env BABEL_ENV=ssr NODE_ENV=development webpack --watch --config client/webpack.config.ssr.js",
+    "client:bundle-dev": "cross-env BABEL_ENV=client NODE_ENV=development webpack-dev-server --config client/webpack.config.dev.js",
+    "server:dev": "cross-env BABEL_ENV=server NODE_ENV=development nodemon --exec babel-node server/app.ts  --extensions '.js,.ts,.tsx'",
+    "server:build": "corss-env BABEL_ENV=server NODE_ENV=production babel server --ignore server/public/ -D -d output/server --extensions '.ts,.tsx'"
   }
 }

@@ -26,7 +26,7 @@ app.use(router.routes());
 
 async function startServer() {
   await Loadable.preloadAll();
-  app.listen(3333, () => {
+  app.listen(3334, () => {
     console.log('start server at port: ', 3333);
   });
 }
